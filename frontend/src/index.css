@@ -1,0 +1,61 @@
+/* ============================================================
+   Sama Stock — Global Styles
+   Entry point for Tailwind CSS directives.
+   All custom design tokens and global resets live here.
+   ============================================================ */
+
+/* Tailwind CSS v3 layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Design Tokens (CSS Custom Properties)
+   These will be extended in S0-3 when shadcn/ui is configured.
+   ============================================================ */
+@layer base {
+  :root {
+    /* Brand colors — to be finalized in Sprint 2 design system */
+    --color-primary: 217 91% 60%;
+    --color-primary-foreground: 0 0% 100%;
+
+    /* Background / Surface */
+    --color-background: 0 0% 100%;
+    --color-foreground: 222 47% 11%;
+    --color-muted: 210 40% 96%;
+    --color-muted-foreground: 215 16% 47%;
+
+    /* Borders & Rings */
+    --color-border: 214 32% 91%;
+    --color-ring: 217 91% 60%;
+
+    /* Radius */
+    --radius: 0.5rem;
+  }
+
+  /* Dark mode tokens */
+  .dark {
+    --color-background: 222 47% 8%;
+    --color-foreground: 210 40% 98%;
+    --color-muted: 217 33% 17%;
+    --color-muted-foreground: 215 20% 65%;
+    --color-border: 217 33% 17%;
+    --color-ring: 224 76% 72%;
+  }
+
+  /* Global reset — clean foundation */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+  }
+
+  body {
+    margin: 0;
+    line-height: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
