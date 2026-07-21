@@ -1,10 +1,28 @@
-import { createBrowserRouter } from 'react-router-dom'
-import App from '@/App'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AuthLayout } from '@/features/auth/components/AuthLayout'
+import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { RegisterPage } from '@/features/auth/pages/RegisterPage'
+import { ProtectedRoute } from '@/components/providers/ProtectedRoute'
+import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
-    // We will add child routes here during Sprint 1 (Auth) and Sprint 2 (Dashboard)
+    element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: '/auth',
+    element: <AuthLayout />,
+    children: [
+      { path: 'login', element: <LoginPage /> },
+      { path: 'register', element: <RegisterPage /> },
+    ],
+  },
+  {
+    path: '/dashboard',
+    element: <ProtectedRoute />,
+    children: [
+      { index: true, element: <DashboardPage /> },
+    ],
   },
 ])
