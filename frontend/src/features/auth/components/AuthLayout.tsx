@@ -1,6 +1,14 @@
-import { Outlet } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 export function AuthLayout() {
+  const { session } = useAuthStore()
+
+  // If the user is already logged in, send them straight to the dashboard
+  if (session) {
+    return <Navigate to="/dashboard" replace />
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-sm">

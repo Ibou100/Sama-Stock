@@ -2,11 +2,7 @@
 -- SAMA STOCK - SPRINT 1 : AUTHENTICATION TRIGGER
 -- =================================================================================
 
--- This function automatically runs every time a new user signs up in Supabase Auth.
--- It reads the metadata sent from the frontend during signup to create:
--- 1. Their Organization (Tenant)
--- 2. Their user Profile linked to that organization
-
+-- Fix: Added "SET search_path = public" to prevent type resolution errors for user_role
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 DECLARE
@@ -30,24 +26,22 @@ BEGIN
       new_org_id,
       NEW.email,
       NEW.raw_user_meta_data->>'full_name',
-      'owner'::user_role
+      'owner'::public.user_role
     );
   ELSE
     -- If no organization name is provided, it might be an invited employee.
-    -- The organization_id should be provided in metadata by the inviter.
-    -- For now, just create a standalone profile (or handle invitations later).
     INSERT INTO public.profiles (id, email, full_name, role)
     VALUES (
       NEW.id,
       NEW.email,
       NEW.raw_user_meta_data->>'full_name',
-      'employee'::user_role
+      'employee'::public.user_role
     );
   END IF;
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Create the trigger that calls the function after a user is inserted into auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

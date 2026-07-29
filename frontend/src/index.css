@@ -1,61 +1,102 @@
 /* ============================================================
-   Sama Stock — Global Styles
-   Entry point for Tailwind CSS directives.
-   All custom design tokens and global resets live here.
+   Sama Stock — Global Styles (Sprint 2 Overhaul)
+   Premium dark-first design system with glassmorphism
    ============================================================ */
 
-/* Tailwind CSS v3 layers */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   Design Tokens (CSS Custom Properties)
-   These will be extended in S0-3 when shadcn/ui is configured.
-   ============================================================ */
 @layer base {
   :root {
-    /* Brand colors — to be finalized in Sprint 2 design system */
-    --color-primary: 217 91% 60%;
-    --color-primary-foreground: 0 0% 100%;
-
-    /* Background / Surface */
-    --color-background: 0 0% 100%;
-    --color-foreground: 222 47% 11%;
-    --color-muted: 210 40% 96%;
-    --color-muted-foreground: 215 16% 47%;
-
-    /* Borders & Rings */
-    --color-border: 214 32% 91%;
-    --color-ring: 217 91% 60%;
-
-    /* Radius */
-    --radius: 0.5rem;
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 210 100% 56%;
+    --radius: 0.75rem;
+    --sidebar-width: 260px;
+    --header-height: 64px;
   }
 
-  /* Dark mode tokens */
-  .dark {
-    --color-background: 222 47% 8%;
-    --color-foreground: 210 40% 98%;
-    --color-muted: 217 33% 17%;
-    --color-muted-foreground: 215 20% 65%;
-    --color-border: 217 33% 17%;
-    --color-ring: 224 76% 72%;
-  }
-
-  /* Global reset — clean foundation */
-  *,
-  *::before,
-  *::after {
+  * {
     box-sizing: border-box;
-    border-width: 0;
-    border-style: solid;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   body {
+    @apply bg-background text-foreground;
     margin: 0;
-    line-height: inherit;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism utility */
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--primary)), #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glow effect */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* Animated gradient background */
+  .bg-gradient-mesh {
+    background: 
+      radial-gradient(ellipse at 20% 50%, hsl(var(--primary) / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #7c3aed20 0%, transparent 50%),
+      hsl(var(--background));
   }
 }
