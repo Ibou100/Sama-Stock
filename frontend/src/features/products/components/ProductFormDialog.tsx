@@ -54,7 +54,7 @@ interface ProductFormDialogProps {
 
 export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDialogProps) {
   const { categories, createProduct, updateProduct, isLoading } = useProductStore()
-  const { user } = useAuthStore()
+  const { profile } = useAuthStore()
   const isEditing = !!product
 
   const form = useForm<ProductFormValues>({
@@ -98,13 +98,13 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
   }, [product, open, form])
 
   const onSubmit = async (values: ProductFormValues) => {
-    if (!user?.user_metadata?.organization_id) return
+    if (!profile?.organization_id) return
     
     // Convert 'none' back to null for database
     const payload = {
       ...values,
       category_id: values.category_id === 'none' ? null : values.category_id,
-      organization_id: user.user_metadata.organization_id
+      organization_id: profile.organization_id
     }
 
     try {

@@ -19,7 +19,7 @@ interface CategoryManagerDialogProps {
 
 export function CategoryManagerDialog({ open, onOpenChange }: CategoryManagerDialogProps) {
   const { categories, createCategory, updateCategory, deleteCategory, isLoading } = useProductStore()
-  const { user } = useAuthStore()
+  const { profile } = useAuthStore()
   
   const [newCategoryName, setNewCategoryName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -27,12 +27,12 @@ export function CategoryManagerDialog({ open, onOpenChange }: CategoryManagerDia
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newCategoryName.trim() || !user?.user_metadata?.organization_id) return
+    if (!newCategoryName.trim() || !profile?.organization_id) return
     
     try {
       await createCategory({
         name: newCategoryName.trim(),
-        organization_id: user.user_metadata.organization_id
+        organization_id: profile.organization_id
       })
       setNewCategoryName('')
     } catch (error: any) {
