@@ -9,10 +9,11 @@ import { ProductsPage } from '@/features/products/pages/ProductsPage'
 import { StockPage } from '@/features/stock/pages/StockPage'
 import { SuppliersPage } from '@/features/suppliers/pages/SuppliersPage'
 import { CustomersPage } from '@/features/customers/pages/CustomersPage'
+import { OrdersPage } from '@/features/orders/pages/OrdersPage'
 import { ReportsPage } from '@/features/reports/pages/ReportsPage'
+import { SettingsPage } from '@/features/settings/pages/SettingsPage'
 
 export const router = createBrowserRouter([
-  // Auth routes — redirect to dashboard if logged in
   {
     path: '/',
     element: <AuthLayout />,
@@ -22,7 +23,6 @@ export const router = createBrowserRouter([
       { path: 'register', element: <RegisterPage /> },
     ],
   },
-  // Protected dashboard routes
   {
     path: '/dashboard',
     element: <ProtectedRoute />,
@@ -35,7 +35,9 @@ export const router = createBrowserRouter([
           { path: 'stock', element: <StockPage /> },
           { path: 'suppliers', element: <SuppliersPage /> },
           { path: 'customers', element: <CustomersPage /> },
+          { path: 'orders', element: <OrdersPage /> },
           { path: 'reports', element: <ReportsPage /> },
+          { path: 'settings', element: <SettingsPage /> },
         ],
       },
     ],

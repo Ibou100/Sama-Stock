@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   Truck,
   Users,
+  ShoppingCart,
   BarChart3,
   Settings,
   LogOut,
@@ -33,6 +34,7 @@ const navItems = [
     group: 'Commerce',
     items: [
       { to: '/dashboard/suppliers', icon: Truck, label: 'Fournisseurs' },
+      { to: '/dashboard/orders', icon: ShoppingCart, label: 'Commandes' },
       { to: '/dashboard/customers', icon: Users, label: 'Clients' },
     ],
   },
