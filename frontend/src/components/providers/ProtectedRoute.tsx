@@ -1,11 +1,14 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/useAuthStore'
 
-export function ProtectedRoute() {
+interface ProtectedRouteProps {
+  children?: React.ReactNode
+}
+
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { session, isLoading } = useAuthStore()
 
   if (isLoading) {
-    // A simple loading screen while checking Supabase session
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -13,11 +16,10 @@ export function ProtectedRoute() {
     )
   }
 
-  // If there is no session, redirect to the login page
   if (!session) {
-    return <Navigate to="/auth/login" replace />
+    return <Navigate to="/login" replace />
   }
 
-  // If authenticated, render the child routes (e.g., Dashboard Layout)
-  return <Outlet />
+  // Support both <Outlet /> (nested routes) and children (layout wrapping)
+  return children ? <>{children}</> : <Outlet />
 }
