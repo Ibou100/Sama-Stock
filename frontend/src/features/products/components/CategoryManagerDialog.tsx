@@ -27,7 +27,12 @@ export function CategoryManagerDialog({ open, onOpenChange }: CategoryManagerDia
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newCategoryName.trim() || !profile?.organization_id) return
+    if (!newCategoryName.trim()) return
+    
+    if (!profile?.organization_id) {
+      alert(`Debug: Impossible d'ajouter. profile.organization_id est manquant.\n\nContenu du profil: ${JSON.stringify(profile)}`)
+      return
+    }
     
     try {
       await createCategory({
