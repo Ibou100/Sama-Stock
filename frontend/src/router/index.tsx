@@ -7,6 +7,7 @@ import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { ProductsPage } from '@/features/products/pages/ProductsPage'
 import { StockPage } from '@/features/stock/pages/StockPage'
+import { SuppliersPage } from '@/features/suppliers/pages/SuppliersPage'
 
 export const router = createBrowserRouter([
   // Auth routes — redirect to dashboard if logged in
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: 'products', element: <ProductsPage /> },
           { path: 'stock', element: <StockPage /> },
+          { path: 'suppliers', element: <SuppliersPage /> },
         ],
       },
     ],

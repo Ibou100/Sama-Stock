@@ -49,3 +49,16 @@ export interface InventoryMovement {
   product?: Product
   creator?: Pick<Profile, 'id' | 'full_name'>
 }
+
+export interface Supplier {
+  id: string
+  organization_id: string
+  name: string
+  contact_name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
