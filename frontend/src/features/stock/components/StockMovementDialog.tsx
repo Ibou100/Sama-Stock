@@ -1,46 +1,11 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
 import { useStockStore } from '@/stores/useStockStore'
 import { useProductStore } from '@/stores/useProductStore'
 import { useAuthStore } from '@/stores/useAuthStore'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
-
-const movementSchema = z.object({
-  product_id: z.string().min(1, 'Veuillez sélectionner un produit'),
-  movement_type: z.enum(['IN', 'OUT']),
-  quantity: z.coerce.number().min(1, 'La quantité doit être supérieure à 0'),
-  reason: z.string().optional(),
-})
-
-type MovementFormValues = z.infer<typeof movementSchema>
+import { Loader2, X, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 
 interface StockMovementDialogProps {
   open: boolean
@@ -52,147 +17,190 @@ export function StockMovementDialog({ open, onOpenChange }: StockMovementDialogP
   const { products } = useProductStore()
   const { profile } = useAuthStore()
 
-  const form = useForm<MovementFormValues>({
-    resolver: zodResolver(movementSchema),
-    defaultValues: {
-      product_id: '',
-      movement_type: 'IN',
-      quantity: 1,
-      reason: '',
-    },
-  })
+  const [productId, setProductId] = useState('')
+  const [movementType, setMovementType] = useState<'IN' | 'OUT'>('IN')
+  const [quantity, setQuantity] = useState(1)
+  const [reason, setReason] = useState('')
+  const [error, setError] = useState('')
 
+  // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      form.reset({
-        product_id: '',
-        movement_type: 'IN',
-        quantity: 1,
-        reason: '',
-      })
+      setProductId('')
+      setMovementType('IN')
+      setQuantity(1)
+      setReason('')
+      setError('')
     }
-  }, [open, form])
+  }, [open])
 
-  const onSubmit = async (values: MovementFormValues) => {
-    if (!profile?.organization_id || !profile?.id) return
-    
+  if (!open) return null
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    if (!productId) {
+      setError('Veuillez sélectionner un produit.')
+      return
+    }
+    if (quantity < 1) {
+      setError('La quantité doit être supérieure à 0.')
+      return
+    }
+    if (!profile?.organization_id || !profile?.id) {
+      setError('Profil introuvable. Reconnectez-vous.')
+      return
+    }
+
     try {
       await addMovement({
-        ...values,
+        product_id: productId,
+        movement_type: movementType as any,
+        quantity,
+        reason: reason || undefined,
         organization_id: profile.organization_id,
-        created_by: profile.id
+        created_by: profile.id,
       })
       onOpenChange(false)
-    } catch (error: any) {
-      alert(error.message || 'Erreur lors de l\'enregistrement du mouvement')
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors de l\'enregistrement.')
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-background/95 backdrop-blur-xl border-border/50 text-foreground">
-        <DialogHeader>
-          <DialogTitle>Enregistrer un mouvement de stock</DialogTitle>
-          <DialogDescription>
-            Saisissez une entrée (ex: livraison) ou une sortie (ex: vente, perte).
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        onClick={() => onOpenChange(false)}
+      />
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="product_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Produit *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-background/50">
-                        <SelectValue placeholder="Sélectionner le produit..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {products.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name} (Stock actuel: {p.current_stock})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <div
+          className="relative w-full max-w-md glass border border-border/50 rounded-2xl shadow-2xl pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border/40">
+            <div>
+              <h2 className="text-base font-semibold gradient-text">Mouvement de stock</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Enregistrez une entrée ou une sortie
+              </p>
+            </div>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="movement_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-background/50">
-                          <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="IN" className="text-green-500 font-medium">Entrée (Ajout)</SelectItem>
-                        <SelectItem value="OUT" className="text-red-500 font-medium">Sortie (Retrait)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+            {/* Type de mouvement */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Type de mouvement *</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMovementType('IN')}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                    movementType === 'IN'
+                      ? 'border-emerald-500 bg-emerald-500/15 text-emerald-400'
+                      : 'border-border/50 text-muted-foreground hover:bg-accent/30'
+                  }`}
+                >
+                  <ArrowDownLeft className="w-4 h-4" />
+                  Entrée
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMovementType('OUT')}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                    movementType === 'OUT'
+                      ? 'border-rose-500 bg-rose-500/15 text-rose-400'
+                      : 'border-border/50 text-muted-foreground hover:bg-accent/30'
+                  }`}
+                >
+                  <ArrowUpRight className="w-4 h-4" />
+                  Sortie
+                </button>
+              </div>
+            </div>
 
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantité *</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={1} className="bg-background/50" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            {/* Produit */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Produit *</label>
+              <select
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+                className="w-full h-10 rounded-lg border border-border/50 bg-background/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              >
+                <option value="">— Sélectionner un produit —</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} (Stock : {p.current_stock})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Quantité */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Quantité *</label>
+              <Input
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="bg-background/50"
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Motif / Client (Optionnel)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Ex: Vente comptoir, Livraison fournisseur..." 
-                      className="resize-none bg-background/50" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Motif */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Motif (optionnel)</label>
+              <Textarea
+                placeholder="Ex: Vente comptoir, Livraison fournisseur, Perte..."
+                className="resize-none bg-background/50"
+                rows={2}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </div>
 
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            {/* Error */}
+            {error && (
+              <p className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={isSaving}
+              >
                 Annuler
               </Button>
-              <Button type="submit" disabled={isSaving} className="glow-primary">
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className={`glow-primary ${movementType === 'OUT' ? 'bg-rose-600 hover:bg-rose-700' : ''}`}
+              >
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Enregistrer
               </Button>
-            </DialogFooter>
+            </div>
           </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </>
   )
 }

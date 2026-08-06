@@ -7,8 +7,6 @@ import {
   ArrowLeftRight,
   Truck,
   Users,
-  ShoppingCart,
-  FileText,
   BarChart3,
   Settings,
   LogOut,
@@ -18,6 +16,7 @@ import {
   X,
   TrendingUp,
 } from 'lucide-react'
+
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -35,8 +34,6 @@ const navItems = [
     items: [
       { to: '/dashboard/suppliers', icon: Truck, label: 'Fournisseurs' },
       { to: '/dashboard/customers', icon: Users, label: 'Clients' },
-      { to: '/dashboard/orders', icon: ShoppingCart, label: 'Commandes' },
-      { to: '/dashboard/invoices', icon: FileText, label: 'Factures' },
     ],
   },
   {

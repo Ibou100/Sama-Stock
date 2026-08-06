@@ -8,6 +8,8 @@ import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { ProductsPage } from '@/features/products/pages/ProductsPage'
 import { StockPage } from '@/features/stock/pages/StockPage'
 import { SuppliersPage } from '@/features/suppliers/pages/SuppliersPage'
+import { CustomersPage } from '@/features/customers/pages/CustomersPage'
+import { ReportsPage } from '@/features/reports/pages/ReportsPage'
 
 export const router = createBrowserRouter([
   // Auth routes — redirect to dashboard if logged in
@@ -32,6 +34,8 @@ export const router = createBrowserRouter([
           { path: 'products', element: <ProductsPage /> },
           { path: 'stock', element: <StockPage /> },
           { path: 'suppliers', element: <SuppliersPage /> },
+          { path: 'customers', element: <CustomersPage /> },
+          { path: 'reports', element: <ReportsPage /> },
         ],
       },
     ],
