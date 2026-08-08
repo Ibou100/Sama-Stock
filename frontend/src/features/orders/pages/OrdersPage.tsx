@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useOrderStore, type PurchaseOrder, type OrderItem } from '@/stores/useOrderStore'
+import { useOrderStore, type PurchaseOrder } from '@/stores/useOrderStore'
 import { useSupplierStore } from '@/stores/useSupplierStore'
 import { useProductStore } from '@/stores/useProductStore'
 import { Button } from '@/components/ui/button'
@@ -209,7 +209,7 @@ function NewOrderModal({ open, onClose }: { open: boolean; onClose: () => void }
 
 // ---- Order Row (expandable) ----
 function OrderRow({ order }: { order: PurchaseOrder }) {
-  const { updateStatus, receiveOrder, deleteOrder, isLoading } = useOrderStore()
+  const { updateStatus, receiveOrder, deleteOrder } = useOrderStore()
   const [expanded, setExpanded] = useState(false)
   const [receiving, setReceiving] = useState(false)
 
@@ -229,7 +229,7 @@ function OrderRow({ order }: { order: PurchaseOrder }) {
   }
 
   return (
-    <>
+    <TableBody>
       <TableRow className="border-border/50 hover:bg-accent/20 transition-colors">
         <TableCell>
           <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -311,7 +311,7 @@ function OrderRow({ order }: { order: PurchaseOrder }) {
           </TableCell>
         </TableRow>
       )}
-    </>
+    </TableBody>
   )
 }
 
@@ -328,7 +328,8 @@ export function OrdersPage() {
     fetchOrders()
     fetchSuppliers()
     fetchData()
-  }, [fetchOrders, fetchSuppliers, fetchData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const filtered = orders.filter(o => {
     const matchSearch = o.order_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -415,15 +416,19 @@ export function OrdersPage() {
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
+          {isLoading && (
+            <TableBody>
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                   <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
                   Chargement...
                 </TableCell>
               </TableRow>
-            ) : filtered.length === 0 ? (
+            </TableBody>
+          )}
+
+          {!isLoading && filtered.length === 0 && (
+            <TableBody>
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -435,10 +440,12 @@ export function OrdersPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : (
-              filtered.map(order => <OrderRow key={order.id} order={order} />)
-            )}
-          </TableBody>
+            </TableBody>
+          )}
+
+          {!isLoading && filtered.length > 0 && (
+            filtered.map(order => <OrderRow key={order.id} order={order} />)
+          )}
         </Table>
       </div>
 

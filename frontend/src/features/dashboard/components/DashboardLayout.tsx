@@ -1,6 +1,9 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { AppErrorBoundary } from '@/components/providers/AppErrorBoundary'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   Package,
@@ -14,12 +17,11 @@ import {
   ChevronDown,
   Bell,
   Menu,
-  X,
   TrendingUp,
+  Receipt,
+  X,
 } from 'lucide-react'
 
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
 
 const navItems = [
   {
@@ -36,6 +38,7 @@ const navItems = [
       { to: '/dashboard/suppliers', icon: Truck, label: 'Fournisseurs' },
       { to: '/dashboard/orders', icon: ShoppingCart, label: 'Commandes' },
       { to: '/dashboard/customers', icon: Users, label: 'Clients' },
+      { to: '/dashboard/invoices', icon: Receipt, label: 'Factures' },
     ],
   },
   {
@@ -47,8 +50,9 @@ const navItems = [
 ]
 
 export function DashboardLayout() {
-  const { user } = useAuthStore()
+  const { user, profile } = useAuthStore()
   const navigate = useNavigate()
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [profileOpen, setProfileOpen] = useState(false)
 
@@ -83,7 +87,12 @@ export function DashboardLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-6">
-          {navItems.map((group) => (
+          {navItems.filter(group => {
+            if (group.group === 'Analyse') {
+              return (profile as any)?.role === 'owner' || (profile as any)?.role === 'admin';
+            }
+            return true;
+          }).map((group) => (
             <div key={group.group}>
               {sidebarOpen && (
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 mb-2">
@@ -144,7 +153,7 @@ export function DashboardLayout() {
               <>
                 <div className="flex-1 text-left min-w-0">
                   <p className="text-xs font-medium text-foreground truncate">{user?.email}</p>
-                  <p className="text-[10px] text-muted-foreground">Propriétaire</p>
+                  <p className="text-[10px] text-muted-foreground">{(profile as any)?.role === 'owner' ? 'Propriétaire' : (profile as any)?.role === 'admin' ? 'Administrateur' : 'Employé'}</p>
                 </div>
                 <ChevronDown className="w-3 h-3 flex-shrink-0" />
               </>
@@ -196,7 +205,9 @@ export function DashboardLayout() {
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+          <AppErrorBoundary key={location.pathname}>
+            <Outlet />
+          </AppErrorBoundary>
         </main>
       </div>
     </div>

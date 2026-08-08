@@ -27,8 +27,7 @@ import {
   BarChart3,
   AlertTriangle,
 } from 'lucide-react'
-import { format, subDays, startOfDay } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { format, subDays } from 'date-fns'
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe']
 
@@ -178,7 +177,7 @@ export function ReportsPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} width={80} />
-              <Tooltip content={<CustomTooltip />} formatter={(v: number) => [`${v.toLocaleString('fr-FR')} FCFA`, 'Valeur']} />
+              <Tooltip content={<CustomTooltip />} formatter={(v: any) => [`${v.toLocaleString('fr-FR')} FCFA`, 'Valeur']} />
               <Bar dataKey="valeur" fill="#6366f1" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>

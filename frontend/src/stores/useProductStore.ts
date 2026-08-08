@@ -46,12 +46,30 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  createProduct: async (product) => {
+  createProduct: async (payload) => {
     set({ isLoading: true, error: null })
     try {
+      const { initial_stock, ...product } = payload as any
+      
       const { data, error } = await supabase.from('products').insert(product).select('*, categories(*)').single()
       if (error) throw error
-      set((state) => ({ products: [data as unknown as Product, ...state.products], isLoading: false }))
+      
+      const newProduct = data as unknown as Product
+      
+      if (initial_stock && initial_stock > 0) {
+        const { error: moveError } = await supabase.from('inventory_movements').insert({
+          organization_id: newProduct.organization_id,
+          product_id: newProduct.id,
+          movement_type: 'IN',
+          quantity: initial_stock,
+          reason: 'Stock initial'
+        })
+        if (moveError) throw moveError
+        
+        newProduct.current_stock = initial_stock
+      }
+
+      set((state) => ({ products: [newProduct, ...state.products], isLoading: false }))
     } catch (error: any) {
       set({ error: error.message, isLoading: false })
       throw error

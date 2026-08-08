@@ -21,6 +21,7 @@ const EMPTY = {
   price: 0,
   cost: 0,
   min_stock: 10,
+  initial_stock: 0,
   description: '',
 }
 
@@ -43,6 +44,7 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
           price: product.price,
           cost: product.cost,
           min_stock: product.min_stock,
+          initial_stock: 0,
           description: product.description ?? '',
         })
       } else {
@@ -70,6 +72,7 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
       price: Number(form.price),
       cost: Number(form.cost),
       min_stock: Number(form.min_stock),
+      initial_stock: Number(form.initial_stock || 0),
       organization_id: profile.organization_id,
     }
 
@@ -169,8 +172,8 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
               </div>
             </div>
 
-            {/* Prix + Coût + Stock min */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Prix + Coût + Stock min + Stock initial */}
+            <div className={`grid gap-4 ${isEditing ? 'grid-cols-3' : 'grid-cols-4'}`}>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Prix de vente (FCFA)</label>
                 <Input
@@ -201,6 +204,18 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
                   className="bg-background/50"
                 />
               </div>
+              {!isEditing && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-emerald-400">Stock initial</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={form.initial_stock}
+                    onChange={(e) => set('initial_stock', e.target.value)}
+                    className="bg-background/50 border-emerald-500/30 focus:border-emerald-500"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Description */}

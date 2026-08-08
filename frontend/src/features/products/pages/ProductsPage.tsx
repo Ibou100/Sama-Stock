@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useProductStore } from '@/stores/useProductStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import type { Product } from '@/types'
 import {
   Table,
@@ -18,6 +19,7 @@ import { CategoryManagerDialog } from '../components/CategoryManagerDialog'
 
 export function ProductsPage() {
   const { products, isLoading, fetchData, deleteProduct } = useProductStore()
+  const { profile } = useAuthStore()
   const [searchTerm, setSearchTerm] = useState('')
   
   // Dialog states
@@ -163,9 +165,11 @@ export function ProductsPage() {
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="h-8 w-8 hover:text-primary">
                             <Edit2 className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id, product.name)} className="h-8 w-8 hover:text-destructive hover:bg-destructive/10">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {((profile as any)?.role === 'owner' || (profile as any)?.role === 'admin') && (
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id, product.name)} className="h-8 w-8 hover:text-destructive hover:bg-destructive/10">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

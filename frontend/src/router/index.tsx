@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import { AuthLayout } from '@/features/auth/components/AuthLayout'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
@@ -9,18 +9,34 @@ import { ProductsPage } from '@/features/products/pages/ProductsPage'
 import { StockPage } from '@/features/stock/pages/StockPage'
 import { SuppliersPage } from '@/features/suppliers/pages/SuppliersPage'
 import { CustomersPage } from '@/features/customers/pages/CustomersPage'
+import { InvoicesPage } from '@/features/invoices/pages/InvoicesPage'
 import { OrdersPage } from '@/features/orders/pages/OrdersPage'
 import { ReportsPage } from '@/features/reports/pages/ReportsPage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
 
+import { LandingPage } from '@/features/marketing/pages/LandingPage'
+import { SuperAdminPage } from '@/features/superadmin/pages/SuperAdminPage'
+
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
+
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <LandingPage />,
+  },
+  {
+    path: '/super-admin',
+    element: <SuperAdminPage />,
+  },
+  {
+    path: '/auth',
     element: <AuthLayout />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
     ],
   },
   {
@@ -36,6 +52,7 @@ export const router = createBrowserRouter([
           { path: 'suppliers', element: <SuppliersPage /> },
           { path: 'customers', element: <CustomersPage /> },
           { path: 'orders', element: <OrdersPage /> },
+          { path: 'invoices', element: <InvoicesPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'settings', element: <SettingsPage /> },
         ],
