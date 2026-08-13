@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Receipt,
   X,
+  Crown,
 } from 'lucide-react'
 
 
@@ -126,6 +127,24 @@ export function DashboardLayout() {
 
         {/* Settings + User */}
         <div className="border-t border-border/50 p-2 space-y-1">
+          {/* God Mode - Super Admin only */}
+          {(profile as any)?.is_super_admin && (
+            <NavLink
+              to="/super-admin"
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                  isActive
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    : 'text-amber-400/70 hover:text-amber-400 hover:bg-amber-500/10'
+                )
+              }
+            >
+              <Crown className="w-4 h-4 flex-shrink-0" />
+              {sidebarOpen && <span>God Mode</span>}
+            </NavLink>
+          )}
+
           <NavLink
             to="/dashboard/settings"
             className={({ isActive }) =>
