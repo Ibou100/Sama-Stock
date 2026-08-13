@@ -1,22 +1,44 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { Lock, Loader2 } from 'lucide-react'
+import { Lock, Loader2, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react'
 
 export function ResetPasswordPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isReady, setIsReady] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check if the user is actually in a password recovery session
-    supabase.auth.onAuthStateChange(async (event) => {
-      if (event == "PASSWORD_RECOVERY") {
-        console.log("Password recovery session detected")
+    // Supabase sends the recovery token in the URL hash.
+    // The onAuthStateChange listener picks it up and creates a session.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Recovery session is active — user can now set a new password
+        setIsReady(true)
+        setIsCheckingSession(false)
+        setError(null)
+      } else if (event === 'SIGNED_IN' && session) {
+        // Sometimes Supabase fires SIGNED_IN instead of PASSWORD_RECOVERY
+        setIsReady(true)
+        setIsCheckingSession(false)
+        setError(null)
       }
     })
+
+    // Timeout: if no event fires within 3 seconds, the link is expired or invalid
+    const timeout = setTimeout(() => {
+      setIsCheckingSession(false)
+    }, 3000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,16 +58,71 @@ export function ResetPasswordPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.updateUser({ password: password })
+      const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
-      
-      // Success - redirect to dashboard
-      navigate('/dashboard')
+      setIsSuccess(true)
     } catch (err: any) {
       setError(err.message || "Une erreur est survenue lors de la mise à jour du mot de passe.")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Success state
+  if (isSuccess) {
+    return (
+      <div className="glass p-8 rounded-2xl border border-border/50 shadow-2xl text-center">
+        <div className="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Mot de passe mis à jour !</h2>
+        <p className="text-muted-foreground mb-6">
+          Votre mot de passe a été changé avec succès.
+        </p>
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="bg-primary text-white rounded-lg px-6 py-2.5 font-medium hover:bg-primary/90 transition-all"
+        >
+          Aller au tableau de bord
+        </button>
+      </div>
+    )
+  }
+
+  // Loading state — waiting for Supabase to process the token
+  if (isCheckingSession) {
+    return (
+      <div className="glass p-8 rounded-2xl border border-border/50 shadow-2xl text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+        <h2 className="text-xl font-bold mb-2">Vérification en cours...</h2>
+        <p className="text-muted-foreground text-sm">
+          Nous vérifions votre lien de réinitialisation.
+        </p>
+      </div>
+    )
+  }
+
+  // Error state — link expired or invalid
+  if (!isReady) {
+    return (
+      <div className="glass p-8 rounded-2xl border border-border/50 shadow-2xl text-center">
+        <div className="w-16 h-16 bg-destructive/20 text-destructive rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertCircle className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Lien expiré</h2>
+        <p className="text-muted-foreground mb-6">
+          Ce lien de réinitialisation a expiré ou est invalide.<br />
+          Veuillez en demander un nouveau.
+        </p>
+        <Link
+          to="/auth/forgot-password"
+          className="inline-flex items-center gap-2 bg-primary text-white rounded-lg px-6 py-2.5 font-medium hover:bg-primary/90 transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Demander un nouveau lien
+        </Link>
+      </div>
+    )
   }
 
   return (
