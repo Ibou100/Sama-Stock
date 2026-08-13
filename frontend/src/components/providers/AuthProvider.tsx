@@ -28,9 +28,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 2. Listen for auth changes (login, logout, token refresh)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       fetchProfile(session).finally(() => setLoading(false))
+
+      // Log connection for analytics (fire-and-forget)
+      if (event === 'SIGNED_IN' && session?.user) {
+        supabase.rpc('log_user_login').then(({ error }) => {
+          if (error) console.warn('Login log failed:', error.message)
+        })
+      }
     })
 
     // Cleanup subscription on unmount
