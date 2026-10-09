@@ -17,6 +17,7 @@ import { useStockStore } from '@/stores/useStockStore'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // --- KPI Card Component ---
 interface KpiCardProps {
@@ -61,6 +62,10 @@ function KpiCard({ title, value, sub, subType, icon: Icon, color, bgColor }: Kpi
 export function DashboardPage() {
   const { products, fetchData } = useProductStore()
   const { movements, fetchMovements } = useStockStore()
+  const { organization } = useAuthStore()
+
+  const bType = organization?.business_type || 'general'
+  const showExpiryAlert = bType === 'pharmacy' || bType === 'supermarket' || !!organization?.enable_expiry_tracking
 
   useEffect(() => {
     fetchData()
@@ -166,8 +171,8 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Pharmacy Expiry Alert Banner */}
-      {expiringCount > 0 && (
+      {/* Expiry Alert Banner (Pharmacie / Alimentation uniquement) */}
+      {showExpiryAlert && expiringCount > 0 && (
         <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
@@ -175,10 +180,10 @@ export function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-rose-300">
-                Alerte Péremption Pharmacie : {expiringCount} référence(s) expirée(s) ou proches de péremption (&le; 90 jours)
+                {bType === 'pharmacy' ? 'Alerte Péremption Pharmacie' : 'Alerte Dates d’Expiration'} : {expiringCount} référence(s) expirée(s) ou proches (&le; 90 jours)
               </p>
               <p className="text-xs text-rose-400/80 mt-0.5">
-                Vérifiez les lots dans le catalogue pour isoler ou liquider les produits prioritaires.
+                Vérifiez les dates d'expiration dans le catalogue pour isoler ou liquider les produits prioritaires.
               </p>
             </div>
           </div>

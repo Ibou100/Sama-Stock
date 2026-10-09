@@ -19,7 +19,9 @@ import { CategoryManagerDialog } from '../components/CategoryManagerDialog'
 
 export function ProductsPage() {
   const { products, isLoading, fetchData, deleteProduct } = useProductStore()
-  const { profile } = useAuthStore()
+  const { profile, organization } = useAuthStore()
+  const bType = organization?.business_type || 'general'
+  const showExpiry = bType === 'pharmacy' || bType === 'supermarket' || !!organization?.enable_expiry_tracking
   const [searchTerm, setSearchTerm] = useState('')
   
   // Dialog states
@@ -151,16 +153,18 @@ export function ProductsPage() {
             <AlertTriangle className="w-3.5 h-3.5" />
             Stock faible ({lowStockCount})
           </button>
-          <button
-            onClick={() => setFilterType('expiring')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-              filterType === 'expiring'
-                ? 'bg-rose-500 text-white'
-                : 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20'
-            }`}
-          >
-            Péremptions ({expiringCount})
-          </button>
+          {showExpiry && (
+            <button
+              onClick={() => setFilterType('expiring')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                filterType === 'expiring'
+                  ? 'bg-rose-500 text-white'
+                  : 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20'
+              }`}
+            >
+              Péremptions ({expiringCount})
+            </button>
+          )}
         </div>
       </div>
 
@@ -171,24 +175,24 @@ export function ProductsPage() {
             <TableHeader className="bg-accent/30">
               <TableRow className="border-border/50 hover:bg-transparent">
                 <TableHead>Produit</TableHead>
-                <TableHead>SKU & Lot</TableHead>
+                <TableHead>{showExpiry ? 'SKU & Lot' : 'SKU'}</TableHead>
                 <TableHead>Catégorie</TableHead>
                 <TableHead className="text-right">Prix (FCFA)</TableHead>
                 <TableHead className="text-right">Stock & Unité</TableHead>
-                <TableHead className="text-center">Statut Péremption</TableHead>
+                {showExpiry && <TableHead className="text-center">Statut Péremption</TableHead>}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && products.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={showExpiry ? 7 : 6} className="h-24 text-center text-muted-foreground">
                     Chargement des produits...
                   </TableCell>
                 </TableRow>
               ) : filteredProducts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={showExpiry ? 7 : 6} className="h-24 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Box className="w-8 h-8 text-muted-foreground/50" />
                       <p>Aucun produit trouvé.</p>
@@ -239,15 +243,17 @@ export function ProductsPage() {
                           {product.current_stock} {product.unit || 'pièce(s)'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center">
-                        {expiryStatus ? (
-                          <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full border ${expiryStatus.color}`}>
-                            {expiryStatus.label}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/60">—</span>
-                        )}
-                      </TableCell>
+                      {showExpiry && (
+                        <TableCell className="text-center">
+                          {expiryStatus ? (
+                            <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full border ${expiryStatus.color}`}>
+                              {expiryStatus.label}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/60">—</span>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="h-8 w-8 hover:text-primary">

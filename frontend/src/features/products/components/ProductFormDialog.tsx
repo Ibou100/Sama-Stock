@@ -30,8 +30,16 @@ const EMPTY = {
 
 export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDialogProps) {
   const { categories, createProduct, updateProduct, isLoading } = useProductStore()
-  const { profile } = useAuthStore()
+  const { profile, organization } = useAuthStore()
   const isEditing = !!product
+
+  const bType = organization?.business_type || 'general'
+  const isPharmacy = bType === 'pharmacy'
+  const isQuincaillerie = bType === 'quincaillerie'
+  const isSupermarket = bType === 'supermarket'
+  const showExpiry = isPharmacy || isSupermarket || !!organization?.enable_expiry_tracking
+  const showExtendedUnits = isQuincaillerie || !!organization?.enable_extended_units
+  const showSerial = !showExpiry && !!organization?.enable_serial_numbers
 
   const [form, setForm] = useState(EMPTY)
   const [error, setError] = useState('')
@@ -137,7 +145,15 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
               <div className="col-span-2 sm:col-span-1 space-y-1.5">
                 <label className="text-sm font-medium">Nom du produit *</label>
                 <Input
-                  placeholder="Ex: Paracétamol 500mg"
+                  placeholder={
+                    isPharmacy
+                      ? 'Ex: Paracétamol 500mg'
+                      : isQuincaillerie
+                      ? 'Ex: Ciment 50kg, Fer 10mm'
+                      : isSupermarket
+                      ? 'Ex: Lait concentré, Huile 1L'
+                      : 'Ex: iPhone 15 Pro, Valise cabine...'
+                  }
                   value={form.name}
                   onChange={(e) => set('name', e.target.value)}
                   className="bg-background/50"
@@ -146,7 +162,15 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
               <div className="col-span-2 sm:col-span-1 space-y-1.5">
                 <label className="text-sm font-medium">SKU (Code Interne) *</label>
                 <Input
-                  placeholder="Ex: MED-001"
+                  placeholder={
+                    isPharmacy
+                      ? 'Ex: MED-001'
+                      : isQuincaillerie
+                      ? 'Ex: QNC-001'
+                      : isSupermarket
+                      ? 'Ex: ALIM-001'
+                      : 'Ex: ART-001'
+                  }
                   value={form.sku}
                   onChange={(e) => set('sku', e.target.value)}
                   className="bg-background/50"
@@ -228,57 +252,92 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
               )}
             </div>
 
-            {/* Unité de mesure (Quincaillerie, vrac, conditionnement) */}
+            {/* Unité de mesure adaptée au secteur */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Unité de mesure (Quincaillerie / Vrac)</label>
-              <select
-                value={form.unit}
-                onChange={(e) => set('unit', e.target.value)}
-                className="w-full h-10 rounded-lg border border-border/50 bg-background/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              >
-                <option value="pièce">Pièce / Unité</option>
-                <option value="mètre">Mètre (m) - ex: câbles, tuyaux</option>
-                <option value="kg">Kilogramme (kg) - ex: clous, vrac</option>
-                <option value="g">Gramme (g)</option>
-                <option value="litre">Litre (L) - ex: peinture, solvants</option>
-                <option value="sac">Sac - ex: ciment, plâtre</option>
-                <option value="rouleau">Rouleau - ex: grillage, isolant</option>
-                <option value="boîte">Boîte / Flacon - ex: pharmacie</option>
-                <option value="carton">Carton / Colis</option>
-                <option value="paquet">Paquet / Sachet</option>
-                <option value="paire">Paire</option>
-              </select>
+              <label className="text-sm font-medium">
+                {showExtendedUnits ? 'Unité de mesure (Quincaillerie / Vrac)' : 'Unité de conditionnement'}
+              </label>
+              {showExtendedUnits ? (
+                <select
+                  value={form.unit}
+                  onChange={(e) => set('unit', e.target.value)}
+                  className="w-full h-10 rounded-lg border border-border/50 bg-background/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                >
+                  <option value="pièce">Pièce / Unité</option>
+                  <option value="mètre">Mètre (m) - câbles, tuyaux, profilés</option>
+                  <option value="kg">Kilogramme (kg) - clous, vrac, fer</option>
+                  <option value="g">Gramme (g)</option>
+                  <option value="litre">Litre (L) - peinture, solvants</option>
+                  <option value="sac">Sac - ciment, plâtre, colle</option>
+                  <option value="rouleau">Rouleau - grillage, isolant</option>
+                  <option value="carton">Carton / Colis</option>
+                  <option value="paquet">Paquet / Sachet</option>
+                  <option value="paire">Paire</option>
+                </select>
+              ) : (
+                <select
+                  value={form.unit}
+                  onChange={(e) => set('unit', e.target.value)}
+                  className="w-full h-10 rounded-lg border border-border/50 bg-background/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                >
+                  <option value="pièce">Pièce / Unité (standard)</option>
+                  <option value="carton">Carton / Colis</option>
+                  <option value="paquet">Paquet / Sachet</option>
+                  <option value="paire">Paire (chaussures, etc.)</option>
+                  {isPharmacy && <option value="boîte">Boîte / Flacon</option>}
+                </select>
+              )}
             </div>
 
-            {/* Spécificités Pharmacie & Traçabilité */}
-            <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-                  Traçabilité & Pharmacie (Lots & Péremption)
-                </span>
-                <span className="text-[10px] text-muted-foreground">Optionnel</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">N° de Lot / Série</label>
-                  <Input
-                    placeholder="Ex: LOT-2026-A1"
-                    value={form.batch_number}
-                    onChange={(e) => set('batch_number', e.target.value)}
-                    className="h-9 text-xs bg-background/60"
-                  />
+            {/* Traçabilité & Péremption (Affiché UNIQUEMENT si Pharmacie ou Alimentation ou Suivi activé) */}
+            {showExpiry && (
+              <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                    {isPharmacy ? 'Traçabilité Pharmacie (Lots & Péremption)' : 'Gestion DLC & Dates d’expiration'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">Optionnel</span>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Date d'expiration</label>
-                  <Input
-                    type="date"
-                    value={form.expiry_date}
-                    onChange={(e) => set('expiry_date', e.target.value)}
-                    className="h-9 text-xs bg-background/60"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">N° de Lot / Série</label>
+                    <Input
+                      placeholder="Ex: LOT-2026-A1"
+                      value={form.batch_number}
+                      onChange={(e) => set('batch_number', e.target.value)}
+                      className="h-9 text-xs bg-background/60"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Date d'expiration</label>
+                    <Input
+                      type="date"
+                      value={form.expiry_date}
+                      onChange={(e) => set('expiry_date', e.target.value)}
+                      className="h-9 text-xs bg-background/60"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Numéro de Série / IMEI (Téléphonie, Électronique, Bagages) */}
+            {showSerial && (
+              <div className="p-3.5 rounded-xl border border-cyan-500/20 bg-cyan-500/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">
+                    Numéro de Série / Code IMEI
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">Optionnel</span>
+                </div>
+                <Input
+                  placeholder="Ex: IMEI-356789123456789 ou SN-ABC1234"
+                  value={form.batch_number}
+                  onChange={(e) => set('batch_number', e.target.value)}
+                  className="h-9 text-xs bg-background/60"
+                />
+              </div>
+            )}
 
             {/* Description */}
             <div className="space-y-1.5">

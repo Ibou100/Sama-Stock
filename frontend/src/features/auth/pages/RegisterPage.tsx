@@ -12,6 +12,7 @@ export function RegisterPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   
   const [organizationName, setOrganizationName] = useState('')
+  const [businessType, setBusinessType] = useState('general')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,7 +23,7 @@ export function RegisterPage() {
     setError(null)
     setSuccessMsg(null)
 
-    // Using Supabase Auth signUp. We pass organization_name and full_name 
+    // Using Supabase Auth signUp. We pass organization_name, business_type and full_name 
     // in the metadata so our SQL trigger can create the tenant and profile automatically.
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -30,6 +31,7 @@ export function RegisterPage() {
       options: {
         data: {
           organization_name: organizationName,
+          business_type: businessType,
           full_name: fullName,
         }
       }
@@ -80,14 +82,28 @@ export function RegisterPage() {
       <CardContent>
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="orgName">Nom de l'entreprise (Pharmacie, Boutique...)</Label>
+            <Label htmlFor="orgName">Nom de votre établissement *</Label>
             <Input 
               id="orgName" 
-              placeholder="Pharmacie de la Paix" 
+              placeholder="Ex: Sama Boutique, Pharmacie Centrale, Quincaillerie Moderne..." 
               required 
               value={organizationName}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOrganizationName(e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="businessType">Secteur d'activité / Métier</Label>
+            <select
+              id="businessType"
+              value={businessType}
+              onChange={(e) => setBusinessType(e.target.value)}
+              className="w-full h-10 rounded-lg border border-border/50 bg-background/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="general">🛍️ Boutique & Commerce Général (Téléphonie, Bagages, Vêtements...)</option>
+              <option value="pharmacy">💊 Pharmacie & Santé (Médicaments, Parapharmacie)</option>
+              <option value="quincaillerie">🔨 Quincaillerie & Matériaux (BTP, Outillage, Vrac)</option>
+              <option value="supermarket">🛒 Alimentation & Supérette (Épicerie, Libre-service)</option>
+            </select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="fullName">Votre Nom Complet</Label>
@@ -104,7 +120,7 @@ export function RegisterPage() {
             <Input 
               id="email" 
               type="email" 
-              placeholder="contact@pharmacie.com" 
+              placeholder="contact@mon-entreprise.com" 
               required 
               value={email}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
