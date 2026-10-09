@@ -143,7 +143,7 @@ export function DashboardLayout() {
               }
             >
               <Crown className="w-4 h-4 flex-shrink-0" />
-              {sidebarOpen && <span>God Mode</span>}
+              {sidebarOpen && <span>Super Admin (Plateforme)</span>}
             </NavLink>
           )}
 
