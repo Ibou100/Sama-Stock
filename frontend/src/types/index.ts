@@ -28,6 +28,9 @@ export interface Product {
   cost: number
   min_stock: number
   current_stock: number
+  unit?: string // 'pièce', 'kg', 'mètre', 'litre', 'boîte', 'paquet', etc.
+  expiry_date?: string | null // ISO date string (pour pharmacie)
+  batch_number?: string | null // Numéro de lot (pour pharmacie/traçabilité)
   created_at: string
   updated_at: string
   

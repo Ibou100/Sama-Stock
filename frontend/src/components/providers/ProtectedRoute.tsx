@@ -17,7 +17,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!session) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/auth/login" replace />
   }
 
   // Support both <Outlet /> (nested routes) and children (layout wrapping)

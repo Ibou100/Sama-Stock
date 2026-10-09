@@ -10,6 +10,7 @@ import { StockPage } from '@/features/stock/pages/StockPage'
 import { SuppliersPage } from '@/features/suppliers/pages/SuppliersPage'
 import { CustomersPage } from '@/features/customers/pages/CustomersPage'
 import { InvoicesPage } from '@/features/invoices/pages/InvoicesPage'
+import { POSPage } from '@/features/pos/pages/POSPage'
 import { OrdersPage } from '@/features/orders/pages/OrdersPage'
 import { ReportsPage } from '@/features/reports/pages/ReportsPage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'products', element: <ProductsPage /> },
+          { path: 'pos', element: <POSPage /> },
           { path: 'stock', element: <StockPage /> },
           { path: 'suppliers', element: <SuppliersPage /> },
           { path: 'customers', element: <CustomersPage /> },

@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   Eye,
   ArrowUpRight,
+  Store,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useProductStore } from '@/stores/useProductStore'
@@ -127,26 +128,68 @@ export function DashboardPage() {
     [products]
   )
 
+  const expiringCount = useMemo(() => {
+    return products.filter(p => {
+      if (!p.expiry_date) return false
+      const diff = new Date(p.expiry_date).getTime() - new Date().setHours(0, 0, 0, 0)
+      return Math.ceil(diff / (1000 * 60 * 60 * 24)) <= 90
+    }).length
+  }, [products])
+
   const recentMovements = useMemo(() => movements.slice(0, 5), [movements])
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Tableau de bord</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <Link
-          to="/dashboard/stock"
-          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all glow-primary"
-        >
-          <ShoppingCart className="w-4 h-4" />
-          Nouveau mouvement
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/dashboard/pos"
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all shadow-md"
+          >
+            <Store className="w-4 h-4" />
+            Caisse (POS)
+          </Link>
+          <Link
+            to="/dashboard/stock"
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium px-4 py-2 rounded-xl transition-all glow-primary"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            Nouveau mouvement
+          </Link>
+        </div>
       </div>
+
+      {/* Pharmacy Expiry Alert Banner */}
+      {expiringCount > 0 && (
+        <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-rose-300">
+                Alerte Péremption Pharmacie : {expiringCount} référence(s) expirée(s) ou proches de péremption (&le; 90 jours)
+              </p>
+              <p className="text-xs text-rose-400/80 mt-0.5">
+                Vérifiez les lots dans le catalogue pour isoler ou liquider les produits prioritaires.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/dashboard/products"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white transition-colors whitespace-nowrap"
+          >
+            Voir les alertes
+          </Link>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

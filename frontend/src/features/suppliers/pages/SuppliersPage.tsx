@@ -20,22 +20,15 @@ function SupplierFormDialog({ open, onOpenChange, supplier }: {
   const { createSupplier, updateSupplier, isLoading } = useSupplierStore()
   const { profile } = useAuthStore()
   const isEditing = !!supplier
-  const [form, setForm] = useState(EMPTY)
+  const [form, setForm] = useState(() => supplier ? {
+    name: supplier.name,
+    contact_name: supplier.contact_name || '',
+    email: supplier.email || '',
+    phone: supplier.phone || '',
+    address: supplier.address || '',
+    notes: supplier.notes || '',
+  } : EMPTY)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (open) {
-      setForm(supplier ? {
-        name: supplier.name,
-        contact_name: supplier.contact_name || '',
-        email: supplier.email || '',
-        phone: supplier.phone || '',
-        address: supplier.address || '',
-        notes: supplier.notes || '',
-      } : EMPTY)
-      setError('')
-    }
-  }, [open, supplier])
 
   if (!open) return null
 
@@ -224,7 +217,9 @@ export function SuppliersPage() {
         </Table>
       </div>
 
-      <SupplierFormDialog open={dialogOpen} onOpenChange={setDialogOpen} supplier={editingSupplier} />
+      {dialogOpen && (
+        <SupplierFormDialog key={editingSupplier?.id || 'new'} open={dialogOpen} onOpenChange={setDialogOpen} supplier={editingSupplier} />
+      )}
     </div>
   )
 }

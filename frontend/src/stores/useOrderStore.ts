@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { useProductStore } from './useProductStore'
 
 export interface OrderItem {
   id: string
@@ -65,12 +66,22 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   createOrder: async (order, items) => {
     set({ isLoading: true, error: null })
     try {
-      const { data: profile } = await supabase.from('profiles').select('organization_id, id').single()
-      const org_id = (profile as any)?.organization_id
-      const user_id = (profile as any)?.id
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData.user) throw new Error('Utilisateur non connecté')
+      const user = authData.user
 
-      // Generate order number
-      const orderNum = `BC-${Date.now().toString().slice(-6)}`
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id, id')
+        .eq('id', user.id)
+        .single()
+      const org_id = (profile as any)?.organization_id
+      const user_id = user.id
+
+      // Generate order number via sequence
+      const { data: seqData, error: seqErr } = await supabase.rpc('get_next_sequence_value', { seq_name: 'purchase_order_seq' })
+      const seqVal = !seqErr && seqData ? seqData : Date.now().toString().slice(-4)
+      const orderNum = `BC-${new Date().getFullYear()}-${String(seqVal).padStart(4, '0')}`
 
       const { data: newOrder, error: orderErr } = await supabase
         .from('purchase_orders')
@@ -123,9 +134,17 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   receiveOrder: async (id) => {
     set({ isLoading: true, error: null })
     try {
-      const { data: profile } = await supabase.from('profiles').select('organization_id, id').single()
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData.user) throw new Error('Utilisateur non connecté')
+      const user = authData.user
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id, id')
+        .eq('id', user.id)
+        .single()
       const org_id = (profile as any)?.organization_id
-      const user_id = (profile as any)?.id
+      const user_id = user.id
 
       // Get order with items
       const order = get().orders.find(o => o.id === id)
@@ -154,6 +173,9 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       if (error) throw error
 
       await get().fetchOrders()
+
+      // Refresh product store so current_stock updates immediately
+      await useProductStore.getState().fetchData()
     } catch (err: any) {
       set({ error: err.message })
       throw err

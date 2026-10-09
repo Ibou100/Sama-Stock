@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 export function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
   
   const [organizationName, setOrganizationName] = useState('')
   const [fullName, setFullName] = useState('')
@@ -19,10 +20,11 @@ export function RegisterPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    setSuccessMsg(null)
 
     // Using Supabase Auth signUp. We pass organization_name and full_name 
     // in the metadata so our SQL trigger can create the tenant and profile automatically.
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -41,7 +43,30 @@ export function RegisterPage() {
       
       setError(errorMessage)
       setIsLoading(false)
+    } else {
+      setIsLoading(false)
+      if (!data.session) {
+        setSuccessMsg("Votre compte a été créé avec succès ! Veuillez vérifier votre boîte email pour confirmer votre inscription.")
+      }
     }
+  }
+
+  if (successMsg) {
+    return (
+      <Card className="w-full border-none shadow-xl bg-background/60 backdrop-blur-xl">
+        <CardHeader>
+          <CardTitle className="text-xl text-center text-emerald-500">Compte créé !</CardTitle>
+          <CardDescription className="text-center mt-2 text-foreground/80">
+            {successMsg}
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="flex justify-center border-t p-4 mt-2">
+          <Link to="/auth/login" className="w-full">
+            <Button className="w-full">Accéder à la connexion</Button>
+          </Link>
+        </CardFooter>
+      </Card>
+    )
   }
 
   return (

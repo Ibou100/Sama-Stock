@@ -11,7 +11,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
         if (error) {
           console.error("Erreur AuthProvider fetchProfile:", error)
-          alert("Erreur lors du chargement de votre profil: " + error.message)
         }
         setProfile(data)
       } else {

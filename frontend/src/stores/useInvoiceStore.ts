@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { useProductStore } from './useProductStore'
 
 export interface InvoiceItem {
   id: string
@@ -16,6 +17,10 @@ export interface Invoice {
   customer_id: string | null
   invoice_number: string
   status: 'draft' | 'paid' | 'cancelled'
+  payment_method?: 'cash' | 'wave' | 'orange_money' | 'card' | 'transfer' | 'other'
+  amount_received?: number
+  change_returned?: number
+  customer_name_snapshot?: string
   notes: string | null
   total_amount: number
   created_by: string | null
@@ -70,9 +75,9 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       if (profileRes.error) throw profileRes.error
       const orgId = profileRes.data.organization_id
 
-      // Get next invoice number
-      const seqRes = await supabase.rpc('get_next_sequence_value', { seq_name: 'invoice_seq' }).single()
-      const seqVal = seqRes.data || Math.floor(Math.random() * 10000)
+      // Get next invoice number safely from database sequence
+      const { data: seqData, error: seqErr } = await supabase.rpc('get_next_sequence_value', { seq_name: 'invoice_seq' })
+      const seqVal = !seqErr && seqData ? seqData : Date.now().toString().slice(-4)
       const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(seqVal).padStart(4, '0')}`
 
       // Create invoice
@@ -113,6 +118,8 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       if (moveErr) throw moveErr
 
       await get().fetchInvoices()
+      // Refresh products so current_stock updates in UI
+      await useProductStore.getState().fetchData()
     } catch (err: any) {
       set({ error: err.message, isLoading: false })
       throw err
@@ -132,9 +139,26 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
 
   deleteInvoice: async (id) => {
     try {
+      const inv = get().invoices.find(i => i.id === id)
+      // If the invoice was paid, re-inject the quantities back into stock
+      if (inv && inv.items && inv.status === 'paid') {
+        const restoreMovements = inv.items.map(item => ({
+          organization_id: inv.organization_id,
+          product_id: item.product_id,
+          movement_type: 'IN',
+          quantity: item.quantity,
+          reason: `Restitution stock - Annulation facture ${inv.invoice_number}`
+        }))
+        if (restoreMovements.length > 0) {
+          await supabase.from('inventory_movements').insert(restoreMovements)
+        }
+      }
+
       const { error } = await supabase.from('invoices').delete().eq('id', id)
       if (error) throw error
       await get().fetchInvoices()
+      
+      await useProductStore.getState().fetchData()
     } catch (err: any) {
       set({ error: err.message })
       throw err

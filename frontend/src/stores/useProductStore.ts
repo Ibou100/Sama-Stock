@@ -79,7 +79,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
   updateProduct: async (id, updates) => {
     set({ isLoading: true, error: null })
     try {
-      const { data, error } = await supabase.from('products').update(updates).eq('id', id).select('*, categories(*)').single()
+      // Ensure initial_stock (form-only field) is never sent to DB
+      const { initial_stock: _, ...validUpdates } = updates as any
+      const { data, error } = await supabase.from('products').update(validUpdates).eq('id', id).select('*, categories(*)').single()
       if (error) throw error
       set((state) => ({
         products: state.products.map(p => p.id === id ? data as unknown as Product : p),

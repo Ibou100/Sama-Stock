@@ -40,6 +40,17 @@ function ChartTooltip({ active, payload, label }: any) {
   )
 }
 
+function formatTimeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 1) return "À l'instant"
+  if (minutes < 60) return `Il y a ${minutes}min`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `Il y a ${hours}h`
+  const days = Math.floor(hours / 24)
+  return `Il y a ${days}j`
+}
+
 export function SuperAdminPage() {
   const { profile, isLoading: authLoading } = useAuthStore()
   const store = useSuperAdminStore()
@@ -98,17 +109,6 @@ export function SuperAdminPage() {
 
   if (!profile?.is_super_admin) {
     return <Navigate to="/dashboard" replace />
-  }
-
-  const formatTimeAgo = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime()
-    const minutes = Math.floor(diff / 60000)
-    if (minutes < 1) return "À l'instant"
-    if (minutes < 60) return `Il y a ${minutes}min`
-    const hours = Math.floor(minutes / 60)
-    if (hours < 24) return `Il y a ${hours}h`
-    const days = Math.floor(hours / 24)
-    return `Il y a ${days}j`
   }
 
   const getOrgName = (orgId: string | null) => {

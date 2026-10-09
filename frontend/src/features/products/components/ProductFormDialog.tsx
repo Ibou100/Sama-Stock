@@ -22,6 +22,9 @@ const EMPTY = {
   cost: 0,
   min_stock: 10,
   initial_stock: 0,
+  unit: 'pièce',
+  expiry_date: '',
+  batch_number: '',
   description: '',
 }
 
@@ -45,6 +48,9 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
           cost: product.cost,
           min_stock: product.min_stock,
           initial_stock: 0,
+          unit: product.unit || 'pièce',
+          expiry_date: product.expiry_date || '',
+          batch_number: product.batch_number || '',
           description: product.description ?? '',
         })
       } else {
@@ -73,12 +79,16 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
       cost: Number(form.cost),
       min_stock: Number(form.min_stock),
       initial_stock: Number(form.initial_stock || 0),
+      unit: form.unit || 'pièce',
+      expiry_date: form.expiry_date ? form.expiry_date : null,
+      batch_number: form.batch_number ? form.batch_number : null,
       organization_id: profile.organization_id,
     }
 
     try {
       if (isEditing && product) {
-        await updateProduct(product.id, payload)
+        const { initial_stock: _, ...updatePayload } = payload
+        await updateProduct(product.id, updatePayload)
       } else {
         await createProduct(payload)
       }
@@ -216,6 +226,58 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
                   />
                 </div>
               )}
+            </div>
+
+            {/* Unité de mesure (Quincaillerie, vrac, conditionnement) */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Unité de mesure (Quincaillerie / Vrac)</label>
+              <select
+                value={form.unit}
+                onChange={(e) => set('unit', e.target.value)}
+                className="w-full h-10 rounded-lg border border-border/50 bg-background/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              >
+                <option value="pièce">Pièce / Unité</option>
+                <option value="mètre">Mètre (m) - ex: câbles, tuyaux</option>
+                <option value="kg">Kilogramme (kg) - ex: clous, vrac</option>
+                <option value="g">Gramme (g)</option>
+                <option value="litre">Litre (L) - ex: peinture, solvants</option>
+                <option value="sac">Sac - ex: ciment, plâtre</option>
+                <option value="rouleau">Rouleau - ex: grillage, isolant</option>
+                <option value="boîte">Boîte / Flacon - ex: pharmacie</option>
+                <option value="carton">Carton / Colis</option>
+                <option value="paquet">Paquet / Sachet</option>
+                <option value="paire">Paire</option>
+              </select>
+            </div>
+
+            {/* Spécificités Pharmacie & Traçabilité */}
+            <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                  Traçabilité & Pharmacie (Lots & Péremption)
+                </span>
+                <span className="text-[10px] text-muted-foreground">Optionnel</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">N° de Lot / Série</label>
+                  <Input
+                    placeholder="Ex: LOT-2026-A1"
+                    value={form.batch_number}
+                    onChange={(e) => set('batch_number', e.target.value)}
+                    className="h-9 text-xs bg-background/60"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Date d'expiration</label>
+                  <Input
+                    type="date"
+                    value={form.expiry_date}
+                    onChange={(e) => set('expiry_date', e.target.value)}
+                    className="h-9 text-xs bg-background/60"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Description */}

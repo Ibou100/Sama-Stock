@@ -48,9 +48,14 @@ export const useCustomerStore = create<CustomerState>((set) => ({
   createCustomer: async (customer) => {
     set({ isLoading: true, error: null })
     try {
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData.user) throw new Error('Utilisateur non connecté')
+      const user = authData.user
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('organization_id')
+        .eq('id', user.id)
         .single()
       const { data, error } = await supabase
         .from('customers')

@@ -21,6 +21,7 @@ import {
   Receipt,
   X,
   Crown,
+  Store,
 } from 'lucide-react'
 
 
@@ -34,12 +35,13 @@ const navItems = [
     ],
   },
   {
-    group: 'Commerce',
+    group: 'Commerce & Vente',
     items: [
-      { to: '/dashboard/suppliers', icon: Truck, label: 'Fournisseurs' },
+      { to: '/dashboard/pos', icon: Store, label: 'Caisse (POS)' },
+      { to: '/dashboard/invoices', icon: Receipt, label: 'Factures' },
       { to: '/dashboard/orders', icon: ShoppingCart, label: 'Commandes' },
       { to: '/dashboard/customers', icon: Users, label: 'Clients' },
-      { to: '/dashboard/invoices', icon: Receipt, label: 'Factures' },
+      { to: '/dashboard/suppliers', icon: Truck, label: 'Fournisseurs' },
     ],
   },
   {

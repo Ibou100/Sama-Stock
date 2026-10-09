@@ -1,11 +1,12 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 export function AuthLayout() {
   const { session } = useAuthStore()
+  const location = useLocation()
 
-  // If the user is already logged in, send them straight to the dashboard
-  if (session) {
+  // If the user is already logged in, send them straight to the dashboard (unless resetting password)
+  if (session && !location.pathname.includes('reset-password')) {
     return <Navigate to="/dashboard" replace />
   }
 
