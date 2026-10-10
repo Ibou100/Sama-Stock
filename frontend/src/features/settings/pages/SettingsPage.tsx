@@ -21,6 +21,7 @@ import {
   Layers,
   Save,
   Check,
+  Trash2,
 } from 'lucide-react'
 import { useTeamStore } from '@/stores/useTeamStore'
 
@@ -44,7 +45,7 @@ export function SettingsPage() {
   const [orgLoading, setOrgLoading] = useState(false)
   const [orgMsg, setOrgMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  const { members, fetchMembers, isLoading: teamLoading } = useTeamStore()
+  const { members, fetchMembers, removeMember, isLoading: teamLoading } = useTeamStore()
 
   const [inviteOpen, setInviteOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
@@ -167,6 +168,29 @@ export function SettingsPage() {
       setInviteMsg({ type: 'error', text: err.message || "Erreur lors de l'invitation." })
     } finally {
       setInviteLoading(false)
+    }
+  }
+
+  const handleRemoveMember = async (member: any) => {
+    if (member.id === user?.id) {
+      alert('Vous ne pouvez pas vous retirer vous-même.')
+      return
+    }
+
+    const confirmMsg = `Voulez-vous vraiment retirer ${member.email} (${member.full_name || 'Sans nom'}) de votre équipe ?\n\nCette action supprimera son accès à ce magasin.`
+    if (!window.confirm(confirmMsg)) return
+
+    try {
+      await removeMember(member.id)
+      setInviteMsg({
+        type: 'success',
+        text: `Le membre ${member.email} a été retiré de l'équipe avec succès.`,
+      })
+    } catch (err: any) {
+      setInviteMsg({
+        type: 'error',
+        text: err.message || "Erreur lors de la suppression de l'employé.",
+      })
     }
   }
 
@@ -663,6 +687,7 @@ export function SettingsPage() {
                     <th className="px-6 py-4 font-medium">Utilisateur</th>
                     <th className="px-6 py-4 font-medium">Rôle</th>
                     <th className="px-6 py-4 font-medium">Date d'ajout</th>
+                    <th className="px-6 py-4 font-medium text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -694,6 +719,19 @@ export function SettingsPage() {
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {new Date(member.created_at).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {member.id !== user?.id && member.role !== 'owner' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveMember(member)}
+                            title="Retirer ce membre de l'équipe"
+                            className="h-8 px-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/15"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}

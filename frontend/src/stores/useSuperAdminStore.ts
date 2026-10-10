@@ -49,6 +49,7 @@ interface SuperAdminState {
 
   fetchPlatformData: () => Promise<void>
   toggleSuperAdmin: (userId: string, newStatus: boolean) => Promise<void>
+  deleteUser: (userId: string) => Promise<void>
   updateOrgPlan: (orgId: string, plan: string) => Promise<void>
   updateOrgStatus: (orgId: string, status: string) => Promise<void>
 
@@ -129,6 +130,24 @@ export const useSuperAdminStore = create<SuperAdminState>((set, get) => ({
         profiles: state.profiles.map((p) =>
           p.id === userId ? { ...p, is_super_admin: newStatus } : p
         ),
+      }))
+    } catch (err: any) {
+      set({ error: err.message })
+      throw err
+    }
+  },
+
+  deleteUser: async (userId: string) => {
+    try {
+      const { error } = await supabase.rpc('delete_user_by_admin', {
+        target_user_id: userId,
+      })
+      if (error) {
+        const { error: directErr } = await supabase.from('profiles').delete().eq('id', userId)
+        if (directErr) throw directErr
+      }
+      set((state) => ({
+        profiles: state.profiles.filter((p) => p.id !== userId),
       }))
     } catch (err: any) {
       set({ error: err.message })

@@ -15,6 +15,7 @@ interface TeamState {
   isLoading: boolean
   error: string | null
   fetchMembers: () => Promise<void>
+  removeMember: (userId: string) => Promise<void>
 }
 
 export const useTeamStore = create<TeamState>((set) => ({
@@ -36,6 +37,24 @@ export const useTeamStore = create<TeamState>((set) => ({
       set({ error: err.message })
     } finally {
       set({ isLoading: false })
+    }
+  },
+
+  removeMember: async (userId: string) => {
+    try {
+      const { error } = await supabase.rpc('delete_user_by_admin', {
+        target_user_id: userId,
+      })
+      if (error) {
+        const { error: directErr } = await supabase.from('profiles').delete().eq('id', userId)
+        if (directErr) throw directErr
+      }
+      set((state) => ({
+        members: state.members.filter((m) => m.id !== userId),
+      }))
+    } catch (err: any) {
+      set({ error: err.message })
+      throw err
     }
   },
 }))

@@ -21,6 +21,7 @@ import {
   Download,
   Check,
   Server,
+  Trash2,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -74,6 +75,7 @@ export function SuperAdminPage() {
     isLoading,
     fetchPlatformData,
     toggleSuperAdmin,
+    deleteUser,
     updateOrgPlan,
     updateOrgStatus,
     connectionsToday,
@@ -153,6 +155,33 @@ export function SuperAdminPage() {
       setNotification({
         type: 'error',
         text: err.message || 'Erreur lors de la modification des droits.',
+      })
+    } finally {
+      setActionLoading(null)
+      setTimeout(() => setNotification(null), 4000)
+    }
+  }
+
+  const handleDeleteUser = async (u: TenantProfile) => {
+    if (u.id === profile?.id) {
+      alert('Vous ne pouvez pas supprimer votre propre compte Super Admin actif.')
+      return
+    }
+
+    const confirmMsg = `Êtes-vous sûr de vouloir supprimer définitivement le compte de ${u.email} (${u.full_name || 'Sans nom'}) ?\n\nCette action est irréversible et supprimera son accès.`
+    if (!window.confirm(confirmMsg)) return
+
+    setActionLoading(u.id)
+    try {
+      await deleteUser(u.id)
+      setNotification({
+        type: 'success',
+        text: `Le compte ${u.email} a été supprimé définitivement.`,
+      })
+    } catch (err: any) {
+      setNotification({
+        type: 'error',
+        text: err.message || 'Erreur lors de la suppression du compte.',
       })
     } finally {
       setActionLoading(null)
@@ -651,25 +680,38 @@ export function SuperAdminPage() {
                         )}
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={actionLoading === u.id || u.id === profile?.id}
-                          onClick={() => handleToggleAdmin(u)}
-                          className={`text-xs ${
-                            u.is_super_admin
-                              ? 'text-rose-400 border-rose-500/30 hover:bg-rose-500/10'
-                              : 'text-amber-400 border-amber-500/30 hover:bg-amber-500/10'
-                          }`}
-                        >
-                          {actionLoading === u.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : u.is_super_admin ? (
-                            'Révoquer Super Admin'
-                          ) : (
-                            'Nommer Super Admin'
-                          )}
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={actionLoading === u.id || u.id === profile?.id}
+                            onClick={() => handleToggleAdmin(u)}
+                            className={`text-xs ${
+                              u.is_super_admin
+                                ? 'text-rose-400 border-rose-500/30 hover:bg-rose-500/10'
+                                : 'text-amber-400 border-amber-500/30 hover:bg-amber-500/10'
+                            }`}
+                          >
+                            {actionLoading === u.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : u.is_super_admin ? (
+                              'Révoquer Super Admin'
+                            ) : (
+                              'Nommer Super Admin'
+                            )}
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={actionLoading === u.id || u.id === profile?.id}
+                            onClick={() => handleDeleteUser(u)}
+                            title="Supprimer définitivement l'utilisateur"
+                            className="h-8 px-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/15"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
